@@ -3,4 +3,3 @@ keys
 .conda
 __pycache__
 playground.ipynb
-.gitignore

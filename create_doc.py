@@ -88,15 +88,20 @@ def create_document(paragraphs, thesis, title, references=None):
 
     current_index = len(title) + len(metadata) + len(thesis_label) + len(thesis) + 4
 
-
+    # Add a line break and page break after thesis
     requests.append({
-        "insertHorizontalRule": {
+        "insertText": {
+            "location": {"index": current_index},
+            "text": "\n"
+        }
+    })
+    requests.append({
+        "insertPageBreak": {
             "location": {"index": current_index}
         }
     })
 
     current_index += 1
-
 
     # Insert each paragraph
     for paragraph in paragraphs:
@@ -110,9 +115,15 @@ def create_document(paragraphs, thesis, title, references=None):
 
     # Add References section if references are provided
     if references and len(references) > 0:
-        # Add a horizontal rule before references
+        # Add a line break and page break before references
         requests.append({
-            "insertHorizontalRule": {
+            "insertText": {
+                "location": {"index": current_index},
+                "text": "\n"
+            }
+        })
+        requests.append({
+            "insertPageBreak": {
                 "location": {"index": current_index}
             }
         })
@@ -166,3 +177,10 @@ def create_document(paragraphs, thesis, title, references=None):
     ).execute()
 
     print(f"Document created successfully! View it at: https://docs.google.com/document/d/{doc_id}/edit")
+
+if __name__ == "__main__":
+    paragraphs = ["This is a test paragraph.", "This is another test paragraph."]
+    thesis = "This is a test thesis."
+    title = "Test Document"
+    citations = ["https://www.google.com", "https://www.google.com"]
+    create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=citations)
