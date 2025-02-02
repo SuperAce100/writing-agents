@@ -2,7 +2,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import datetime
 
-def create_document(paragraphs, thesis, title):
+def create_document(paragraphs, thesis, title, references=None):
     # Replace with your service account file and scope
     SERVICE_ACCOUNT_FILE = "./keys/writing-agents-2b3410302d32.json"
     SCOPES = ["https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/drive"]
@@ -107,6 +107,47 @@ def create_document(paragraphs, thesis, title):
             }
         })
         current_index += len(paragraph) + 2
+
+    # Add References section if references are provided
+    if references and len(references) > 0:
+        # Add a horizontal rule before references
+        requests.append({
+            "insertHorizontalRule": {
+                "location": {"index": current_index}
+            }
+        })
+        current_index += 1
+
+        # Add References header
+        references_header = "References\n\n"
+        requests.append({
+            "insertText": {
+                "location": {"index": current_index},
+                "text": references_header
+            }
+        })
+        requests.append({
+            "updateTextStyle": {
+                "range": {
+                    "startIndex": current_index,
+                    "endIndex": current_index + len("References")
+                },
+                "textStyle": {"bold": True, "fontSize": {"magnitude": 14, "unit": "PT"}},
+                "fields": "bold,fontSize"
+            }
+        })
+        current_index += len(references_header)
+
+        # Add each reference
+        for i, ref in enumerate(references, 1):
+            citation = f"[{i}] {ref}\n"
+            requests.append({
+                "insertText": {
+                    "location": {"index": current_index},
+                    "text": citation
+                }
+            })
+            current_index += len(citation)
 
     # 3. Send the update requests
     docs_service.documents().batchUpdate(
