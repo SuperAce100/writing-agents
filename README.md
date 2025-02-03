@@ -4,9 +4,7 @@
 
 This project explores the application of hierarchical multi-agent systems to complex cognitive tasks, specifically academic writing. By decomposing the writing process into specialized agent roles, the system demonstrates how emergent behaviors can arise from structured agent interactions while maintaining coherence through typed constraints.
 
-## Theoretical Framework
-
-### Agent Architecture
+## Agent Architecture
 The system employs a hierarchical agent architecture based on three key theoretical principles:
 
 1. **Specialization with Bounded Rationality**
@@ -23,37 +21,6 @@ The system employs a hierarchical agent architecture based on three key theoreti
    - Output generation is bounded by formal specifications
    - Cross-validation occurs at agent boundaries
    - Schema enforcement ensures coherent composition
-
-## Research Contributions
-
-### Novel Aspects of the Architecture
-
-1. **Hierarchical Planning Decomposition**
-   - Research tasks are decomposed through a planning hierarchy
-   - Each level maintains its own representation space
-   - Information is aggregated through structured channels
-
-2. **Type-Theoretic Agent Boundaries**
-   - Agent interfaces are defined through formal type systems
-   - Communication protocols enforce semantic consistency
-   - Error handling is managed through type validation
-
-3. **Emergence Through Constraint Satisfaction**
-   - Complex behaviors emerge from simple, constrained interactions
-   - Global coherence is maintained through local constraints
-   - Type system ensures compositional correctness
-
-### Methodological Innovations
-
-1. **Multi-Level Prompt Engineering**
-   - Prompts are structured hierarchically
-   - Each level handles different aspects of the task
-   - Cross-level consistency is maintained through schemas
-
-2. **Structured Knowledge Integration**
-   - Research findings are formally represented
-   - Knowledge is integrated through typed interfaces
-   - Citations are tracked across agent boundaries
 
 ## Experimental Results
 
@@ -74,45 +41,6 @@ The system demonstrates several key capabilities:
    - Arguments maintain logical flow
    - Citations are properly integrated
 
-## Research Implications
-
-This work has several implications for multi-agent systems research:
-
-1. **Scalability of Agent Architectures**
-   - Demonstrates viability of hierarchical decomposition
-   - Shows how type systems can ensure coherence
-   - Provides framework for complex task automation
-
-2. **Emergent Behaviors**
-   - Complex writing emerges from simple agents
-   - Local constraints produce global coherence
-   - Type systems enable compositional reasoning
-
-3. **Future Directions**
-   - Extension to other cognitive tasks
-   - Investigation of more complex agent hierarchies
-   - Development of richer type systems
-
-## Theoretical Significance
-
-The project contributes to several key areas of AI research:
-
-1. **Multi-Agent Systems Theory**
-   - New approaches to agent coordination
-   - Type-theoretic foundations for agent interaction
-   - Hierarchical planning methodologies
-
-2. **Cognitive Architecture Design**
-   - Decomposition of complex cognitive tasks
-   - Integration of symbolic and neural approaches
-   - Structured knowledge representation
-
-3. **Automated Reasoning**
-   - Type-based compositional reasoning
-   - Constraint satisfaction in agent systems
-   - Emergence through bounded rationality
-
-This research demonstrates how formal methods in multi-agent systems can be applied to complex cognitive tasks, suggesting new directions for AI research in automated content generation and reasoning.
 
 
 ## Environment Setup
