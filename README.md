@@ -7,40 +7,24 @@ This project explores the application of hierarchical multi-agent systems to com
 ## Agent Architecture
 The system employs a hierarchical agent architecture based on three key theoretical principles:
 
-1. **Specialization with Bounded Rationality**
+1. **Specialized Sub-agents**
    - Each agent operates within a specifically defined domain
    - Decision-making is constrained by explicit schemas
    - Information flow is structured through typed interfaces
 
-2. **Emergent Coordination**
+2. **Hierarchical Coordination**
    - Agents interact through a mediator-based architecture
    - Higher-level agents provide strategic direction
    - Lower-level agents handle tactical execution
 
-3. **Constrained Generation with Validation**
+3. **Constrained Generation with Schema Validation**
    - Output generation is bounded by formal specifications
    - Cross-validation occurs at agent boundaries
    - Schema enforcement ensures coherent composition
 
-## Experimental Results
-
-The system demonstrates several key capabilities:
-
-1. **Task Decomposition**
-   - Successfully breaks down complex writing tasks
-   - Maintains coherence across subtasks
-   - Produces well-structured academic content
-
-2. **Knowledge Integration**
-   - Effectively incorporates research findings
-   - Maintains citation consistency
-   - Preserves academic rigor
-
-3. **Quality Metrics**
-   - Output adheres to academic standards
-   - Arguments maintain logical flow
-   - Citations are properly integrated
-
+## Sample Outputs
+[The Future of Work: Why AI Won't Replace Humans](https://docs.google.com/document/d/1X_EPkniGo9QhxwZe_7DCVN0HtTCo-1jt-DxF6CbbNTc/edit)
+[Hierarchical Methods for Planning in Multi-Agent Systems: A Path Towards Efficiency and Cooperation](https://docs.google.com/document/d/1GU8IJFdHJlo1hvKS2BnW6IdbQhq03M3Ozct62fr4m38/edit?tab=t.0)
 
 
 ## Environment Setup
