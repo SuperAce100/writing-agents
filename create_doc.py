@@ -1,6 +1,10 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import datetime
+import tempfile
+import os
+from markdown_pdf import MarkdownPdf, Section
+from citations import create_citation_list
 
 def create_document(paragraphs, thesis, title, references=None):
     # Replace with your service account file and scope
@@ -177,10 +181,101 @@ def create_document(paragraphs, thesis, title, references=None):
     ).execute()
 
     print(f"Document created successfully! View it at: https://docs.google.com/document/d/{doc_id}/edit")
+    return f"https://docs.google.com/document/d/{doc_id}/edit"
+
+def create_doc_markdown(paragraphs, thesis, title, references=None):
+    """
+    Creates a professional PDF document from markdown content with proper formatting.
+    
+    Args:
+        paragraphs (list): List of paragraph strings for main content
+        thesis (str): Thesis statement
+        title (str): Document title
+        references (list, optional): List of reference strings
+        
+    Returns:
+        str: Path to generated PDF file
+    """
+    # Initialize PDF without TOC
+    pdf = MarkdownPdf(toc_level=0)
+    
+    # Create title page with centered content and proper spacing
+    title_content = (
+        "<div style='text-align: center; margin-top: 4in;'>\n\n"
+        f"# {title}\n\n"
+        "<br/><br/>\n\n"
+        "Written by AI\n\n"
+        f"{datetime.datetime.now().strftime('%B %d, %Y')}\n\n"
+        "<br/><br/><br/>\n\n"
+        "**Thesis Statement**\n\n"
+        f"*{thesis}*\n\n"
+        "</div>\n\n"
+        "<div style='page-break-after: always;'></div>\n\n"
+    )
+    title_section = Section(title_content, toc=False)
+    pdf.add_section(title_section)
+
+    content = ""
+
+    # Create main content section with proper paragraph formatting
+    for paragraph in paragraphs:
+        # Add paragraph with proper spacing and indentation
+        content += f"<div style='text-align: justify; text-indent: 2em;'>\n{paragraph}</div>\n\n"
+    
+    content_section = Section(content)
+    pdf.add_section(content_section)
+
+    # Add references section if provided with proper formatting
+    if references:
+        citations = create_citation_list(references)
+        ref_content = "<div>\n\n"
+        ref_content += "# Bibliography\n\n"
+        # Sort citations alphabetically by first author's last name
+        citations.sort(key=lambda x: x.split(',')[0].strip() if ',' in x else x)
+        for citation in citations:
+            # Format each reference with hanging indent and double spacing
+            ref_content += (
+                f"<div style='padding-left: 2em; text-indent: -2em; margin-bottom: 1em;'>\n"
+                f"{citation}\n"
+                "</div>\n\n"
+            )
+        ref_content += "</div>"
+        ref_section = Section(ref_content)
+        pdf.add_section(ref_section)
+
+    print("here")
+    # Set PDF metadata with additional fields
+    pdf.meta.update({
+        "title": title,
+        "author": "Written by AI",
+        "creationDate": str(datetime.datetime.now()),
+        "keywords": "academic paper, thesis",
+        "subject": thesis
+    })
+
+
+    # Create output directory and save PDF
+    pdf_path = "./outputs/output.pdf"
+    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
+    
+    try:
+        pdf.save(pdf_path)
+        print(f"PDF successfully created at: {pdf_path}")
+    except Exception as e:
+        print(f"Error creating PDF: {str(e)}")
+        return None
+
+    return pdf_path
+
 
 if __name__ == "__main__":
     paragraphs = ["This is a test paragraph.", "This is another test paragraph."]
     thesis = "This is a test thesis."
     title = "Test Document"
-    citations = ["https://www.google.com", "https://www.google.com"]
-    create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=citations)
+    references = [
+        "https://doi.org/10.1080/00461520.2012.722805",
+        "https://arxiv.org/abs/2401.03428",
+        "https://www.nytimes.com/2025/02/08/us/politics/treasury-systems-raised-security-concerns.html"
+    ]
+    # create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=citations)
+    create_doc_markdown(paragraphs=paragraphs, thesis=thesis, title=title, references=references)
