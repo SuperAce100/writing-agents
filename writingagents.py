@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import time
 from openai import OpenAI
@@ -12,8 +13,9 @@ from typing import Tuple, Any
 
 # Set page config
 st.set_page_config(
-    page_title="QuillAI",
-    page_icon="🪶",
+    page_title="Inkwell",
+    page_icon="🖋️",
+    layout="wide"
 )
 
 class ParagraphType(str, Enum):
@@ -54,8 +56,9 @@ class WritingAgent:
 
     def generate_research_plan(self, topic: str) -> ResearchPlan:
         """Generate a research plan with search queries based on the topic."""
-        research_planner_system_prompt = """
+        research_planner_system_prompt = f"""
         You are a research assistant that helps with the planning of a research paper. Given a topic, you will provide a list of 3-5 searches that will provide helpful information for the paper.
+        Today's date is: {datetime.now().strftime("%Y-%m-%d")}
         """
 
         response = self.client.beta.chat.completions.parse(
@@ -70,7 +73,7 @@ class WritingAgent:
 
     def _execute_single_search(self, search: str) -> Tuple[str, List[Dict[str, Any]]]:
         """Execute a single search query and return the response and citations."""
-        research_system_prompt = """
+        research_system_prompt = f"""
         You are a highly capable research assistant specializing in academic research and providing scholarly, authoritative, and credible sources. Your primary goal is to assist someone writing an argumentative paper by identifying and summarizing the most relevant and reliable sources available on the internet. 
 
         Focus on delivering:
@@ -101,6 +104,8 @@ class WritingAgent:
            - **Citation**: [Optional formatted citation]
 
         Always aim for depth and accuracy to help the writer build a well-informed and persuasive argument.
+
+        Today's date is: {datetime.now().strftime("%Y-%m-%d")}
         """
 
         messages = [
@@ -217,7 +222,61 @@ class WritingAgent:
         """Generate a single paragraph based on the structure and research."""
         system_prompt = """
         You are an expert writer tasked with crafting a single, high-quality paragraph for an argumentative paper.
-        """  # ... rest of the prompt ...
+
+        You will be provided with the full structure of the paper, including the names and types of each paragraph in order, as well as a prompt defining the focus of the paragraph you are writing and the thesis of the paper.
+
+        Your writing must be concise, meaningful, and directly tied to the thesis while ensuring smooth transitions between paragraphs and sections.
+
+        ### Instructions:
+
+        1. **Understand the Context**:
+
+        - Review the full structure of the paper to understand the flow and relationships between paragraphs.
+        - Identify the role of the paragraph you are crafting within the structure and how it connects to the previous and next paragraphs.
+        - Use the provided prompt to craft a focused, purposeful paragraph that aligns with the thesis and contributes to the overall logical progression of the paper.
+
+        2. **Paragraph Types**:
+
+        - **Introduction**: Hook the reader, introduce the topic, present the thesis, and briefly outline the paper's key arguments. Ensure this paragraph establishes a strong foundation for the paper's flow.
+        - **Expository**: Provide essential context or explain key evidence directly related to the thesis. Connect the context to the prior argument and set up the next paragraph.
+        - **Argumentative**: Present a strong, specific claim backed by evidence that directly supports the thesis. Conclude by preparing the reader for the next argument or evidence.
+        - **Comparative**: Analyze similarities or differences to highlight aspects that strengthen the thesis. Smoothly connect comparisons to prior and forthcoming paragraphs.
+        - **Synthesizing**: Combine ideas or sources to form a cohesive argument that advances the thesis. Tie synthesized ideas to the preceding discussion and suggest implications for the next section.
+        - **Counterargument**: Address and refute opposing views with clear evidence and reasoning. Transition smoothly from prior points and guide the reader back to the thesis.
+        - **Transitional**: Connect ideas or sections to ensure smooth, logical progression while maintaining focus on the thesis. Serve as a bridge that reinforces continuity and introduces the next section.
+        - **Analytical**: Explore the deeper implications or significance of evidence in relation to the thesis. Link implications to prior evidence and analysis and set up subsequent arguments.
+        - **Evaluative**: Critique a source or argument, focusing on its relevance and impact on the thesis. Ensure the critique builds on prior evidence and analysis and transitions to the next key point.
+        - **Conclusion**: Summarize key points, restate the thesis, and provide a strong closing insight or call to action. The final sentence should unify the discussion and leave a lasting impression.
+
+        3. **Writing Style**:
+
+        - Use clear, direct language that conveys meaningful content without unnecessary words. Don't use overly complex language.
+        - Avoid redundancy and focus on presenting new insights or advancing the argument.
+        - Maintain a logical flow that ties each paragraph to the thesis and ensures smooth progression between ideas and sections.
+        - Include in-text citations in APA format (Author, Year) when referencing sources or evidence.
+
+        4. **Paragraph Structure**:
+
+        - Begin with a topic sentence that establishes the paragraph's main idea and links it to the previous paragraph.
+        - Support the idea with concise evidence, analysis, or reasoning, including appropriate in-text citations for all evidence and claims from sources.
+        - End with a sentence that reinforces the thesis and transitions logically to the next section.
+
+        5. **Additional Guidance for Full Paper Structure**:
+
+        - Refer to the names and types of each paragraph to understand their individual roles and how they contribute to the overall argument.
+        - Ensure each paragraph builds on the ideas established in previous paragraphs and sets up the next for a cohesive narrative.
+        - Use transitional phrases and logical connections to maintain smooth and seamless progression.
+        - If you can reasonably assume that an abbreviation or idea has been defined in a previous paragraph or in the thesis, you should not redefine it and can use it as needed.
+        - Consistently cite sources using APA format in-text citations.
+
+        6. **Output**:
+
+        - Write a single paragraph of 150–250 words unless specified otherwise.
+        - Ensure the paragraph is concise, precise, and ready to be part of the larger argument.
+        - Explicitly address the prompt, connect to the thesis in a meaningful way, and ensure smooth transitions from and to other paragraphs.
+        - Include appropriate in-text citations for all evidence and claims from sources.
+
+        """
 
         user_prompt = f"""Name: <n>{paragraph.name}</n>
             Type: <type>{paragraph.paragraphType.value}</type>
@@ -280,8 +339,8 @@ class WritingAgent:
         return paragraphs
 
 def main():
-    st.title("🪶QuillAI")
-    st.subheader("Your AI research assistant")
+    st.title("🖋️ InkwellAI")
+    st.subheader("Your AI-powered research companion")
     
     # Main search bar with a large, centered design
     topic = st.text_input(
@@ -351,6 +410,7 @@ def main():
             
             # Create PDF
             status.write("Writing final paper...")
+            pdf = create_doc.create_doc_markdown(paragraphs, paper_structure.thesis, paper_structure.title, citations)
             doc_url = create_doc.create_document(paragraphs, paper_structure.thesis, paper_structure.title, citations)
             time_taken = time.time() - start_time
             word_count = sum(len(p.split(sep=" ")) for p in paragraphs)
@@ -373,10 +433,15 @@ def main():
                 with st.expander("Outline"):
                     outline = ""
                     for i, para in enumerate(paper_structure.paragraphs, 1):
-                        outline += f"{i}. {para.name}\n"
+                        outline += f"    {i}. {para.name}\n"
                     st.write(outline)
                 
-                st.link_button("View Google Doc", doc_url, type="primary")
+
+                button_col, pdf_col, spacer = st.columns([0.3, 0.3, 0.4])
+                with button_col:
+                    st.link_button("View Google Doc", doc_url, type="primary", use_container_width=True)
+                # with pdf_col:
+                    # st.download_button(label="Download PDF", data=pdf, file_name=f"{paper_structure.title}.pdf", mime="application/pdf")
 
             status.update(label="Paper generated successfully!", state="complete", expanded=False)
 

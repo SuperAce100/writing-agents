@@ -269,7 +269,13 @@ def create_doc_markdown(paragraphs, thesis, title, references=None):
 
 
 if __name__ == "__main__":
-    paragraphs = ["This is a test paragraph.", "This is another test paragraph."]
+    paragraphs = [
+        "In the realm of artificial intelligence and machine learning, the development of large language models has revolutionized the way we approach natural language processing tasks. These sophisticated systems, trained on vast corpora of text data, have demonstrated remarkable capabilities in understanding and generating human-like text across a wide range of domains and applications.",
+        "The architecture of these models typically involves multiple layers of neural networks, with transformer-based designs being particularly prominent in recent years. These architectures employ self-attention mechanisms that allow the model to weigh the importance of different words in a sentence, enabling more nuanced understanding and generation of contextually relevant text.",
+        "One of the most significant challenges in developing these models is the computational resources required for training. The process often necessitates the use of specialized hardware such as GPUs or TPUs, along with distributed computing frameworks to handle the massive scale of data and parameters involved in the training process.",
+        "Despite these challenges, the potential applications of large language models are vast and varied. They are being used in fields ranging from content creation and customer service to scientific research and education, demonstrating their versatility and impact across multiple sectors of society.",
+        "As we continue to develop and refine these models, it is crucial to consider the ethical implications of their use. Issues such as bias in training data, potential misuse of generated content, and the impact on employment in certain industries must be carefully addressed to ensure that the benefits of this technology are distributed equitably and responsibly."
+    ]
     thesis = "This is a test thesis."
     title = "Test Document"
     references = [
