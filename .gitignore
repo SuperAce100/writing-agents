@@ -3,3 +3,5 @@ keys
 .conda
 __pycache__
 playground.ipynb
+*/secrets.toml
+

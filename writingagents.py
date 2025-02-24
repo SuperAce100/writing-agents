@@ -440,8 +440,6 @@ def main():
                 button_col, pdf_col, spacer = st.columns([0.3, 0.3, 0.4])
                 with button_col:
                     st.link_button("View Google Doc", doc_url, type="primary", use_container_width=True)
-                # with pdf_col:
-                    # st.download_button(label="Download PDF", data=pdf, file_name=f"{paper_structure.title}.pdf", mime="application/pdf")
 
             status.update(label="Paper generated successfully!", state="complete", expanded=False)
 

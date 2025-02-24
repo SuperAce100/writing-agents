@@ -3,10 +3,20 @@ from googleapiclient.discovery import build
 import datetime
 import tempfile
 import os
-from markdown_pdf import MarkdownPdf, Section
-from citations import create_citation_list
+import citationlib
+import concurrent.futures
+
+def create_citation_list(references, output_format=citationlib.Format.PLAIN):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        citations = list(executor.map(
+            lambda ref: citationlib.create_citation(ref, output_format=output_format),
+            references
+        ))
+    return citations
+
 
 def create_document(paragraphs, thesis, title, references=None):
+
     # Replace with your service account file and scope
     SERVICE_ACCOUNT_FILE = "./keys/writing-agents-2b3410302d32.json"
     SCOPES = ["https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/drive"]
@@ -18,8 +28,9 @@ def create_document(paragraphs, thesis, title, references=None):
     drive_service = build("drive", "v3", credentials=creds)
 
     # Sample data (replace with your own references)
-    author = "Written by AI"
+    author = "Inkwell AI"
     date = datetime.date.today().strftime("%B %d, %Y")
+    font = "Source Serif 4"
 
     # Utility function to create styled insertText requests
     def create_insert_request(index, text, bold=False, heading=None):
@@ -47,31 +58,71 @@ def create_document(paragraphs, thesis, title, references=None):
     # 2. Build batchUpdate requests to insert content
     requests = []
 
-    # Insert title as a header
+    # Insert title with custom HEADING_1 style
     requests.append({
         "insertText": {
             "location": {"index": 1},
-            "text": title + "\n\n"
+            "text": title + "\n\n",
+        }
+    })
+    requests.append({
+        "updateParagraphStyle": {
+            "range": {"startIndex": 1, "endIndex": len(title) + 2},
+            "paragraphStyle": {
+                "namedStyleType": "HEADING_1",
+                "alignment": "CENTER",
+                "spaceAbove": {"magnitude": 18, "unit": "PT"},
+                "spaceBelow": {"magnitude": 12, "unit": "PT"}
+            },
+            "fields": "namedStyleType,alignment,spaceAbove,spaceBelow"
         }
     })
     requests.append({
         "updateTextStyle": {
             "range": {"startIndex": 1, "endIndex": len(title) + 2},
-            "textStyle": {"bold": True, "fontSize": {"magnitude": 18, "unit": "PT"}},
-            "fields": "bold,fontSize"
+            "textStyle": {
+                "fontSize": {"magnitude": 24, "unit": "PT"},
+                "foregroundColor": {"color": {"rgbColor": {"red": 0.1, "green": 0.1, "blue": 0.1}}},
+                "bold": True,
+                "weightedFontFamily": {"fontFamily": font}
+            },
+            "fields": "fontSize,foregroundColor,bold,weightedFontFamily"
         }
     })
 
-    # Insert author and date
-    metadata = f"Author: {author}\nDate: {date}\n\n"
+    # Insert author and date with custom SUBTITLE style
+    metadata = f"{author}\n{date}\n\n"
     requests.append({
         "insertText": {
             "location": {"index": len(title) + 2},
             "text": metadata
         }
     })
+    requests.append({
+        "updateParagraphStyle": {
+            "range": {"startIndex": len(title) + 2, "endIndex": len(title) + len(metadata) + 2},
+            "paragraphStyle": {
+                "namedStyleType": "SUBTITLE",
+                "alignment": "CENTER",
+                "spaceBelow": {"magnitude": 18, "unit": "PT"},
+            },
+            "fields": "namedStyleType,alignment,spaceBelow"
+        }
+    })
+    requests.append({
+        "updateTextStyle": {
+            "range": {"startIndex": len(title) + 2, "endIndex": len(title) + len(metadata) + 2},
+            "textStyle": {
+                "fontSize": {"magnitude": 12, "unit": "PT"},
+                "foregroundColor": {"color": {"rgbColor": {"red": 0.4, "green": 0.4, "blue": 0.4}}},
+                "italic": True,
+                "weightedFontFamily": {"fontFamily": font}
+            },
+            "fields": "fontSize,foregroundColor,italic,weightedFontFamily"
+        }
+    })
 
-    # Insert thesis
+    # Insert thesis with NORMAL_TEXT style
     thesis_label = "Thesis:\n"
     requests.append({
         "insertText": {
@@ -80,16 +131,33 @@ def create_document(paragraphs, thesis, title, references=None):
         }
     })
     requests.append({
+        "updateParagraphStyle": {
+            "range": {
+                "startIndex": len(title) + len(metadata) + 2,
+                "endIndex": len(title) + len(metadata) + len(thesis_label) + len(thesis) + 4
+            },
+            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT","alignment": "CENTER"},
+            "fields": "namedStyleType,alignment"
+        }
+    })
+    requests.append({
         "updateTextStyle": {
             "range": {
                 "startIndex": len(title) + len(metadata) + 2,
                 "endIndex": len(title) + len(metadata) + len(thesis_label) + 2
             },
-            "textStyle": {"bold": True},
-            "fields": "bold"
+            "textStyle": {"bold": True, "weightedFontFamily": {"fontFamily": font}},
+            "fields": "bold,weightedFontFamily"
         }
     })
-
+    requests.append({
+        "updateTextStyle": {
+            "range": {"startIndex": len(title) + len(metadata) + len(thesis_label) + 2, "endIndex": len(title) + len(metadata) + len(thesis_label) + len(thesis) + 4},
+            "textStyle": {"weightedFontFamily": {"fontFamily": font}},
+            "fields": "weightedFontFamily"
+        }
+    })
+    
     current_index = len(title) + len(metadata) + len(thesis_label) + len(thesis) + 4
 
     # Add a line break and page break after thesis
@@ -107,17 +175,35 @@ def create_document(paragraphs, thesis, title, references=None):
 
     current_index += 1
 
-    # Insert each paragraph
+    # Insert paragraphs with NORMAL_TEXT style
     for paragraph in paragraphs:
+        start_index = current_index
         requests.append({
             "insertText": {
                 "location": {"index": current_index},
                 "text": paragraph + "\n\n"
             }
         })
+        requests.append({
+            "updateParagraphStyle": {
+                "range": {
+                    "startIndex": start_index,
+                    "endIndex": start_index + len(paragraph) + 2
+                },
+                "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+                "fields": "namedStyleType"
+            }
+        })
+        requests.append({
+            "updateTextStyle": {
+                "range": {"startIndex": start_index, "endIndex": start_index + len(paragraph) + 2},
+                "textStyle": {"weightedFontFamily": {"fontFamily": font}},
+                "fields": "weightedFontFamily"
+            }
+        })
         current_index += len(paragraph) + 2
 
-    # Add References section if references are provided
+    # Add References section with HEADING_2 style
     if references and len(references) > 0:
         # Add a line break and page break before references
         requests.append({
@@ -142,24 +228,64 @@ def create_document(paragraphs, thesis, title, references=None):
             }
         })
         requests.append({
+            "updateParagraphStyle": {
+                "range": {
+                    "startIndex": current_index,
+                    "endIndex": current_index + len(references_header)
+                },
+                "paragraphStyle": {
+                    "namedStyleType": "HEADING_2",
+                    "alignment": "START",
+                    "spaceAbove": {"magnitude": 24, "unit": "PT"},
+                },
+                "fields": "namedStyleType,alignment,spaceAbove"
+            }
+        })
+        requests.append({
             "updateTextStyle": {
                 "range": {
                     "startIndex": current_index,
                     "endIndex": current_index + len("References")
                 },
-                "textStyle": {"bold": True, "fontSize": {"magnitude": 14, "unit": "PT"}},
-                "fields": "bold,fontSize"
+                "textStyle": {
+                    "fontSize": {"magnitude": 18, "unit": "PT"},
+                    "foregroundColor": {"color": {"rgbColor": {"red": 0.2, "green": 0.2, "blue": 0.2}}},
+                    "bold": True,
+                    "weightedFontFamily": {"fontFamily": font}
+                },
+                "fields": "fontSize,foregroundColor,bold,weightedFontFamily"
             }
         })
         current_index += len(references_header)
 
-        # Add each reference
-        for i, ref in enumerate(references, 1):
-            citation = f"[{i}] {ref}\n"
+        # Add citations with NORMAL_TEXT style
+        citations = create_citation_list(references, output_format=citationlib.Format.PLAIN)
+        for i, citation in enumerate(citations, 1):
+            start_index = current_index
+            citation += "\n\n"
+            citation = citation.replace("<i>", "")
+            citation = citation.replace("</i>", "")
             requests.append({
                 "insertText": {
                     "location": {"index": current_index},
                     "text": citation
+                }
+            })
+            requests.append({
+                "updateParagraphStyle": {
+                    "range": {
+                        "startIndex": start_index,
+                        "endIndex": start_index + len(citation)
+                    },
+                    "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+                    "fields": "namedStyleType"
+                }
+            })
+            requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": start_index, "endIndex": start_index + len(citation)},
+                    "textStyle": {"weightedFontFamily": {"fontFamily": font}},
+                    "fields": "weightedFontFamily"
                 }
             })
             current_index += len(citation)
@@ -183,89 +309,6 @@ def create_document(paragraphs, thesis, title, references=None):
     print(f"Document created successfully! View it at: https://docs.google.com/document/d/{doc_id}/edit")
     return f"https://docs.google.com/document/d/{doc_id}/edit"
 
-def create_doc_markdown(paragraphs, thesis, title, references=None):
-    """
-    Creates a professional PDF document from markdown content with proper formatting.
-    
-    Args:
-        paragraphs (list): List of paragraph strings for main content
-        thesis (str): Thesis statement
-        title (str): Document title
-        references (list, optional): List of reference strings
-        
-    Returns:
-        str: Path to generated PDF file
-    """
-    # Initialize PDF without TOC
-    pdf = MarkdownPdf(toc_level=0)
-    
-    # Create title page with centered content and proper spacing
-    title_content = (
-        "<div style='text-align: center; margin-top: 4in;'>\n\n"
-        f"# {title}\n\n"
-        "<br/><br/>\n\n"
-        "Written by AI\n\n"
-        f"{datetime.datetime.now().strftime('%B %d, %Y')}\n\n"
-        "<br/><br/><br/>\n\n"
-        "**Thesis Statement**\n\n"
-        f"*{thesis}*\n\n"
-        "</div>\n\n"
-        "<div style='page-break-after: always;'></div>\n\n"
-    )
-    title_section = Section(title_content, toc=False)
-    pdf.add_section(title_section)
-
-    content = ""
-
-    # Create main content section with proper paragraph formatting
-    for paragraph in paragraphs:
-        # Add paragraph with proper spacing and indentation
-        content += f"<div style='text-align: justify; text-indent: 2em;'>\n{paragraph}</div>\n\n"
-    
-    content_section = Section(content)
-    pdf.add_section(content_section)
-
-    # Add references section if provided with proper formatting
-    if references:
-        citations = create_citation_list(references)
-        ref_content = "<div>\n\n"
-        ref_content += "# Bibliography\n\n"
-        # Sort citations alphabetically by first author's last name
-        citations.sort(key=lambda x: x.split(',')[0].strip() if ',' in x else x)
-        for citation in citations:
-            # Format each reference with hanging indent and double spacing
-            ref_content += (
-                f"<div style='padding-left: 2em; text-indent: -2em; margin-bottom: 1em;'>\n"
-                f"{citation}\n"
-                "</div>\n\n"
-            )
-        ref_content += "</div>"
-        ref_section = Section(ref_content)
-        pdf.add_section(ref_section)
-
-    print("here")
-    # Set PDF metadata with additional fields
-    pdf.meta.update({
-        "title": title,
-        "author": "Written by AI",
-        "creationDate": str(datetime.datetime.now()),
-        "keywords": "academic paper, thesis",
-        "subject": thesis
-    })
-
-
-    # Create output directory and save PDF
-    pdf_path = "./outputs/output.pdf"
-    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
-    
-    try:
-        pdf.save(pdf_path)
-        print(f"PDF successfully created at: {pdf_path}")
-    except Exception as e:
-        print(f"Error creating PDF: {str(e)}")
-        return None
-
-    return pdf_path
 
 
 if __name__ == "__main__":
@@ -283,5 +326,4 @@ if __name__ == "__main__":
         "https://arxiv.org/abs/2401.03428",
         "https://www.nytimes.com/2025/02/08/us/politics/treasury-systems-raised-security-concerns.html"
     ]
-    # create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=citations)
-    create_doc_markdown(paragraphs=paragraphs, thesis=thesis, title=title, references=references)
+    create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=references)
