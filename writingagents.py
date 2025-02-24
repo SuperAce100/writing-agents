@@ -411,7 +411,6 @@ def main():
             
             # Create PDF
             status.write("Writing final paper...")
-            pdf = create_doc.create_doc_markdown(paragraphs, paper_structure.thesis, paper_structure.title, citations)
             doc_url = create_doc.create_document(paragraphs, paper_structure.thesis, paper_structure.title, citations)
             time_taken = time.time() - start_time
             word_count = sum(len(p.split(sep=" ")) for p in paragraphs)
