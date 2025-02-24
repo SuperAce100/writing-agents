@@ -7,3 +7,4 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 habanero>=1.2.3
 arxiv>=2.0.0 
+citationlib>=0.2.0
