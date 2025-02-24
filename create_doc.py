@@ -5,6 +5,7 @@ import tempfile
 import os
 import citationlib
 import concurrent.futures
+import streamlit as st
 
 def create_citation_list(references, output_format=citationlib.Format.PLAIN):
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -21,9 +22,7 @@ def create_document(paragraphs, thesis, title, references=None):
     SERVICE_ACCOUNT_FILE = "./keys/writing-agents-2b3410302d32.json"
     SCOPES = ["https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/drive"]
 
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
+    creds = service_account.Credentials.from_service_account_info(st.secrets.google)
     docs_service = build("docs", "v1", credentials=creds)
     drive_service = build("drive", "v3", credentials=creds)
 
@@ -326,5 +325,5 @@ if __name__ == "__main__":
         "https://arxiv.org/abs/2401.03428",
         "https://www.nytimes.com/2025/02/08/us/politics/treasury-systems-raised-security-concerns.html"
     ]
-    # create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=references)
+    create_document(paragraphs=paragraphs, thesis=thesis, title=title, references=references)
 
