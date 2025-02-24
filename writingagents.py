@@ -46,9 +46,10 @@ class ResearchPlan(BaseModel):
 
 class WritingAgent:
     def __init__(self, model: str = "gpt-4o-mini-2024-07-18"):
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         self.perplexity = OpenAI(
-            api_key=os.environ["PERPLEXITY_API_KEY"], 
+            # api_key=os.environ["PERPLEXITY_API_KEY"], 
+            api_key=st.secrets["PERPLEXITY_API_KEY"],
             base_url="https://api.perplexity.ai"
         )
         self.model = model
